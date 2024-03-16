@@ -9,6 +9,7 @@ import model.entitites.Seller;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Connection;
+import java.sql.Statement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +26,41 @@ public class SellerDaoJDBC implements SellerDao {
     
     @Override
     public void insert(Seller obj) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        PreparedStatement st = null;
+        
+        try {
+            st = conn.prepareStatement("INSERT INTO Coursejdbc.seller "
+                    + "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
+                    + "VALUES"
+                    + "(?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
+            );
+            
+            st.setString(1, obj.getName());
+            st.setString(2, obj.getEmail());
+            st.setDate(3, new java.sql.Date(obj.getBithDate().getTime()));
+            st.setDouble(4, obj.getBaseSalary());
+            st.setInt(5, obj.getDepartment().getId());
+            
+            int rowsAffected = st.executeUpdate();
+            
+            if (rowsAffected > 0) {
+                ResultSet rs = st.getGeneratedKeys();
+                if (rs.next()) {
+                    int id = rs.getInt(1);
+                    
+                    obj.setId(id);
+                }
+                Db.closeResultSet(rs);
+            }else{
+                throw new DbException("Error! No rows affected");
+            }
+            
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            Db.closeStatement(st);
+        }
     }
     
     @Override
@@ -56,7 +91,7 @@ public class SellerDaoJDBC implements SellerDao {
             rs = st.executeQuery();
             
             if (rs.next()) { // Testa se vem resultado a seguir
-                Department dep = instatiateDepartment(rs);    
+                Department dep = instatiateDepartment(rs);
                 Seller obj = instatiateSeller(rs, dep);
                 return obj;
             }
@@ -96,7 +131,7 @@ public class SellerDaoJDBC implements SellerDao {
                     dep = instatiateDepartment(rs);
                     map.put(rs.getInt("DepartmentId"), dep);
                 }
-                   
+                
                 Seller obj = instatiateSeller(rs, dep);
                 list.add(obj);
             }
@@ -139,7 +174,7 @@ public class SellerDaoJDBC implements SellerDao {
                     dep = instatiateDepartment(rs);
                     map.put(rs.getInt("DepartmentId"), dep);
                 }
-                   
+                
                 Seller obj = instatiateSeller(rs, dep);
                 list.add(obj);
             }
@@ -172,5 +207,5 @@ public class SellerDaoJDBC implements SellerDao {
         obj.setDepartment(dep);
         return obj;
     }
-
+    
 }
