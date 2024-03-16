@@ -66,7 +66,6 @@ public class SellerDaoJDBC implements SellerDao {
     @Override
     public void update(Seller obj) {
         PreparedStatement st = null;
-        ResultSet rs = null;
         
         try {
             st = conn.prepareStatement("UPDATE Coursejdbc.seller "
@@ -92,7 +91,21 @@ public class SellerDaoJDBC implements SellerDao {
     
     @Override
     public void deletebyid(Integer id) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        PreparedStatement st = null;
+        
+        try {
+            st = conn.prepareStatement("DELETE FROM Coursejdbc.seller "
+                    + "WHERE Id = ?"
+            );
+            st.setInt(1, id);
+            
+            st.executeUpdate();
+            
+        } catch (SQLException e) {
+            throw new DbException(e.getMessage());
+        } finally {
+            Db.closeStatement(st);
+        }
     }
     
     @Override
